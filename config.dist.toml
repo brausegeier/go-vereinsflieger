@@ -1,0 +1,18 @@
+[vereinsflieger]
+user = 'user'
+password = 'password'
+
+[mail]
+user = "mail_user"
+password = "mail_password"
+host = "mail_host"
+port = 25
+sender = "mail_sender"
+voucher_subject = "Gutschein angelegt"
+voucher_template = """
+{{.Salutation}}
+
+Gutschein über Betrag {{.Value}}: angelegt: {{.Number}} {{.Owner}} angelegt.
+
+Bitte Zahlen!
+"""
