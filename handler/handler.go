@@ -128,7 +128,7 @@ func calcValue(k voucher.VoucherKind, mins uint) (value uint) {
 		if f < 2 {
 			f = 2
 		}
-		value = 2250 * f
+		value = 2750 * f
 	}
 	return
 }
