@@ -14,6 +14,7 @@ import (
 )
 
 type Config struct {
+	Port           uint
 	Vereinsflieger struct {
 		User     string
 		Password string
