@@ -109,7 +109,7 @@ func (v *Voucher) Save(c StringGetterFormPoster) (err error) {
 	vals.Add("frm_title", v.Title)
 	vals.Add("frm_voucherdate", v.Date.Format("02.01.2006"))
 	vals.Add("frm_comment", v.Comment)
-	vals.Add("frm_value", fmt.Sprintf("%d,%d", v.Value/100, v.Value%100))
+	vals.Add("frm_value", fmt.Sprintf("%d,%02d", v.Value/100, v.Value%100))
 	vals.Add("frm_status", strconv.Itoa(int(v.State)))
 	vals.Add("frm_firstname", v.FirstName)
 	vals.Add("frm_lastname", v.LastName)

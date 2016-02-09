@@ -32,7 +32,7 @@ func (m *Mailer) Voucher(to string, salutation string, v voucher.Voucher) (err e
 	b := bytes.Buffer{}
 	data := VoucherData{
 		Salutation: salutation,
-		Value:      fmt.Sprintf("%d,%d €", v.Value/100, v.Value%100),
+		Value:      fmt.Sprintf("%d,%02d €", v.Value/100, v.Value%100),
 		Number:     v.Number,
 		Owner:      fmt.Sprintf("%s, %s", v.LastName, v.FirstName),
 	}
