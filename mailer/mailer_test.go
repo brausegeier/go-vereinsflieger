@@ -39,7 +39,7 @@ func TestVoucher(t *testing.T) {
 	}
 	m.Voucher("to", "salutation", voucher.Voucher{
 		Number:    "number",
-		Value:     12335,
+		Value:     12300,
 		FirstName: "firstname",
 		LastName:  "lastname",
 	})
@@ -57,4 +57,4 @@ Gutschein über Betrag {{.Value}}: angelegt: {{.Number}} {{.Owner}} angelegt.
 Bitte Zahlen!
 `
 
-const vResult = "Hallo salutation,\r\n\r\nGutschein über Betrag 123,35 €: angelegt: number lastname, firstname angelegt.\r\n\r\nBitte Zahlen!\r\n"
+const vResult = "Hallo salutation,\r\n\r\nGutschein über Betrag 123,00 €: angelegt: number lastname, firstname angelegt.\r\n\r\nBitte Zahlen!\r\n"
