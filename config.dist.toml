@@ -1,8 +1,12 @@
 port = 8080
 
 [vereinsflieger]
-user = 'user'
-password = 'password'
+user = "user"
+password = "password"
+
+[recaptcha]
+require = false
+secret = "secret"
 
 [mail]
 user = "mail_user"

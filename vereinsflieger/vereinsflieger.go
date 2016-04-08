@@ -1,13 +1,18 @@
 package vereinsflieger
 
 import (
+	"bufio"
 	"bytes"
 	"crypto/md5"
+	"errors"
 	"fmt"
 	"io"
 	"net/http"
 	"net/http/cookiejar"
 	"net/url"
+	"regexp"
+	"strconv"
+	"time"
 )
 
 type Client struct {
@@ -35,30 +40,65 @@ func (c *Client) Logout() (err error) {
 	return
 }
 
-func (c *Client) PostFormString(url string, vals url.Values) (body string, err error) {
-	resp, err := c.PostForm(url, vals)
+const voucherAddUrl = "https://www.vereinsflieger.de/member/community/addvoucher.php"
+
+var voucherAddTKeyRegex = regexp.MustCompile("<input type='hidden' name='tkey' value='([^']*)'>")
+
+func (c *Client) AddVoucher(v Voucher, prefix string) (err error) {
+	v.Identifier, err = c.nextVoucherIdentifier(prefix)
 	if err != nil {
 		return
 	}
-	body, err = readIntoString(resp.Body)
+	resp, err := c.Get(voucherAddUrl)
+	if err != nil {
+		return
+	}
+	tKey, err := extractSubmatch(resp, voucherAddTKeyRegex)
+	if err != nil {
+		err = errors.New("Could not extract Transaction Key.")
+		return
+	}
+	resp, err = c.PostForm(voucherAddUrl, *v.Values(tKey))
+	m, err := regexp.MatchReader("class=\"message success", bufio.NewReader(resp.Body))
+	if err != nil || !m {
+		err = errors.New("Could not create voucher.")
+	}
 	return
 }
 
-func (c *Client) GetString(url string) (body string, err error) {
-	resp, err := c.Get(url)
+const existingVoucherUrl = "https://www.vereinsflieger.de/member/community/voucher.php?sort=col1_desc"
+
+func (c *Client) nextVoucherIdentifier(prefix string) (identifier string, err error) {
+	sortFilterVals := url.Values{"col1": {string(prefix)}, "page": {"1"}, "submit": {"OK"}}
+	resp, err := c.PostForm(existingVoucherUrl, sortFilterVals)
 	if err != nil {
 		return
 	}
-	body, err = readIntoString(resp.Body)
+	year := time.Now().Year()
+	rxp, err := regexp.Compile(fmt.Sprintf("%s-%d-(\\d+)", prefix, year))
+	if err != nil {
+		return
+	}
+	prevStr, err := extractSubmatch(resp, rxp)
+	var next int = 1
+	if err == nil {
+		if prev, err := strconv.Atoi(prevStr); err == nil {
+			next = prev + 1
+		}
+	}
+	identifier = fmt.Sprintf("%s-%d-%03d", prefix, year, next)
 	return
 }
 
-func readIntoString(r io.Reader) (str string, err error) {
-	b := bytes.Buffer{}
-	_, err = io.Copy(&b, r)
-	if err != nil {
+func extractSubmatch(response *http.Response, regex *regexp.Regexp) (match string, err error) {
+	var b bytes.Buffer
+	if _, err = io.Copy(&b, response.Body); err != nil {
 		return
 	}
-	str = b.String()
+	n := regex.FindStringSubmatch(b.String())
+	if len(n) < 2 {
+		err = errors.New("Not Found.")
+	}
+	match = n[1]
 	return
 }

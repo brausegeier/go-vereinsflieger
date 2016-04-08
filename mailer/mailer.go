@@ -3,7 +3,7 @@ package mailer
 import (
 	"bytes"
 	"fmt"
-	"github.com/janvogt/go-vereinsflieger/vereinsflieger/voucher"
+	"github.com/janvogt/go-vereinsflieger/vereinsflieger"
 	"net/smtp"
 	"strings"
 	"text/template"
@@ -28,13 +28,13 @@ type VoucherData struct {
 	Owner      string
 }
 
-func (m *Mailer) Voucher(to string, salutation string, v voucher.Voucher) (err error) {
+func (m *Mailer) Voucher(to string, salutation string, v vereinsflieger.Voucher) (err error) {
 	b := bytes.Buffer{}
 	data := VoucherData{
 		Salutation: salutation,
 		Value:      fmt.Sprintf("%d,%02d €", v.Value/100, v.Value%100),
-		Number:     v.Number,
-		Owner:      fmt.Sprintf("%s, %s", v.LastName, v.FirstName),
+		Number:     v.Identifier,
+		Owner:      fmt.Sprintf("%s, %s", v.Beneficiary.LastName, v.Beneficiary.GivenName),
 	}
 	t, err := template.New("VoucherTemplate").Parse(m.VoucherTemplate)
 	if err != nil {

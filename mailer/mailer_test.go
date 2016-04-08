@@ -1,7 +1,7 @@
 package mailer
 
 import (
-	"github.com/janvogt/go-vereinsflieger/vereinsflieger/voucher"
+	"github.com/janvogt/go-vereinsflieger/vereinsflieger"
 	"net/smtp"
 	"strings"
 	"testing"
@@ -37,11 +37,15 @@ func TestVoucher(t *testing.T) {
 		VoucherTemplate: vTemplate,
 		VoucherSubject:  "subject",
 	}
-	m.Voucher("to", "salutation", voucher.Voucher{
-		Number:    "number",
-		Value:     12300,
-		FirstName: "firstname",
-		LastName:  "lastname",
+	m.Voucher("to", "salutation", vereinsflieger.Voucher{
+		Identifier: "number",
+		Value:      12300,
+		Beneficiary: vereinsflieger.Contact{
+			Person: vereinsflieger.Person{
+				GivenName: "firstname",
+				LastName:  "lastname",
+			},
+		},
 	})
 	if !strings.Contains(string(s.msg), vResult) {
 		t.Errorf("Unexpected Body: \n%v", s.msg)
