@@ -42,6 +42,8 @@ func NewVoucher(values *url.Values) (v Voucher, err error) {
 	if err != nil && v.Kind == MotorGlider {
 		err = fmt.Errorf("Invalid Value %s for duration", values.Get("duration"))
 		return
+	} else {
+		err = nil
 	}
 	v.Duration = uint(duration)
 	switch values.Get("buyer_gender") {
