@@ -39,7 +39,7 @@ func NewVoucher(values *url.Values) (v Voucher, err error) {
 		return
 	}
 	duration, err := strconv.ParseUint(values.Get("duration"), 10, strconv.IntSize)
-	if err != nil {
+	if err != nil && v.Kind == MotorGlider {
 		err = fmt.Errorf("Invalid Value %s for duration", values.Get("duration"))
 		return
 	}
