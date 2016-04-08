@@ -58,7 +58,7 @@ func AddVoucher(rw http.ResponseWriter, req *http.Request) *HttpError {
 	c.Authenticate(DefaultConfig.Vereinsflieger.User, DefaultConfig.Vereinsflieger.Password)
 	defer c.Logout()
 	vv := v.ToVereinsflieger()
-	if err := c.AddVoucher(v.ToVereinsflieger(), string(v.Kind)); err != nil {
+	if err := c.AddVoucher(&vv, string(v.Kind)); err != nil {
 		return &HttpError{err, http.StatusInternalServerError, errorUrl}
 	}
 	if err := DefaultConfig.Mail.Voucher(v.Client.Mail, calcSalutation(v), vv); err != nil {

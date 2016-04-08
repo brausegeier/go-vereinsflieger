@@ -44,7 +44,7 @@ const voucherAddUrl = "https://www.vereinsflieger.de/member/community/addvoucher
 
 var voucherAddTKeyRegex = regexp.MustCompile("<input type='hidden' name='tkey' value='([^']*)'>")
 
-func (c *Client) AddVoucher(v Voucher, prefix string) (err error) {
+func (c *Client) AddVoucher(v *Voucher, prefix string) (err error) {
 	v.Identifier, err = c.nextVoucherIdentifier(prefix)
 	if err != nil {
 		return
