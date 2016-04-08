@@ -101,13 +101,18 @@ func (v *Voucher) ToVereinsflieger() (vv vereinsflieger.Voucher) {
 
 type HttpError struct {
 	error
-	Status int
+	Status   int
+	Redirect string
 }
 
 type FailableHandler func(http.ResponseWriter, *http.Request) *HttpError
 
 func (fh FailableHandler) ServeHTTP(rw http.ResponseWriter, req *http.Request) {
 	if err := fh(rw, req); err != nil {
-		http.Error(rw, err.Error(), err.Status)
+		if err.Redirect != "" {
+			http.Redirect(rw, req, err.Redirect, http.StatusSeeOther)
+		} else {
+			http.Error(rw, err.Error(), err.Status)
+		}
 	}
 }

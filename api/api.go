@@ -41,29 +41,34 @@ func init() {
 
 func AddVoucher(rw http.ResponseWriter, req *http.Request) *HttpError {
 	if err := req.ParseForm(); err != nil {
-		return &HttpError{err, http.StatusBadRequest}
+		return &HttpError{err, http.StatusBadRequest, ""}
 	}
+	errorUrl := req.Form.Get("error")
 	if !isHuman(req) && DefaultConfig.Recaptcha.Require {
-		return &HttpError{fmt.Errorf("Unauthorized."), http.StatusForbidden}
+		return &HttpError{fmt.Errorf("Unauthorized."), http.StatusForbidden, errorUrl}
 	}
 	v, err := NewVoucher(&req.PostForm)
 	if err != nil {
-		return &HttpError{err, http.StatusBadRequest}
+		return &HttpError{err, http.StatusBadRequest, errorUrl}
 	}
 	c, err := vereinsflieger.New()
 	if err != nil {
-		return &HttpError{err, http.StatusInternalServerError}
+		return &HttpError{err, http.StatusInternalServerError, errorUrl}
 	}
 	c.Authenticate(DefaultConfig.Vereinsflieger.User, DefaultConfig.Vereinsflieger.Password)
 	defer c.Logout()
 	vv := v.ToVereinsflieger()
 	if err := c.AddVoucher(v.ToVereinsflieger(), string(v.Kind)); err != nil {
-		return &HttpError{err, http.StatusInternalServerError}
+		return &HttpError{err, http.StatusInternalServerError, errorUrl}
 	}
 	if err := DefaultConfig.Mail.Voucher(v.Client.Mail, calcSalutation(v), vv); err != nil {
-		return &HttpError{err, http.StatusInternalServerError}
+		return &HttpError{err, http.StatusInternalServerError, errorUrl}
 	}
-	fmt.Fprintln(rw, "Success")
+	if successUrl := req.Form.Get("success"); successUrl != "" {
+		http.Redirect(rw, req, successUrl, http.StatusSeeOther)
+	} else {
+		fmt.Fprintln(rw, "Success")
+	}
 	return nil
 }
 
