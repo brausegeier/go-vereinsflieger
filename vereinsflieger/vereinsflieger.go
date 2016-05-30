@@ -117,8 +117,9 @@ func extractSubmatch(response *http.Response, regex *regexp.Regexp) (match strin
 	if _, err = io.Copy(&b, response.Body); err != nil {
 		return
 	}
-	fmt.Println("Search in Text: ", b.String())
-	n := regex.FindStringSubmatch(b.String())
+	page = b.String()
+	fmt.Println("Search in Text: ", page)
+	n := regex.FindStringSubmatch(page)
 	fmt.Println("Found vouchers: ", n)
 	if len(n) < 2 {
 		err = errors.New("Not Found.")
