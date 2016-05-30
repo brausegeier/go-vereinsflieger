@@ -53,7 +53,7 @@ func (c *Client) AddVoucher(v *Voucher, prefix string) (err error) {
 	if err != nil {
 		return
 	}
-	tKey, err := extractSubmatch(resp, voucherAddTKeyRegex)
+	tKey, _, err := extractSubmatch(resp, voucherAddTKeyRegex)
 	if err != nil {
 		err = errors.New("Could not extract Transaction Key.")
 		return
@@ -69,7 +69,11 @@ func (c *Client) AddVoucher(v *Voucher, prefix string) (err error) {
 const existingVoucherUrl = "https://www.vereinsflieger.de/member/community/voucher.php?sort=col1_desc"
 
 func (c *Client) nextVoucherIdentifier(prefix string) (identifier string, err error) {
-	sortFilterVals := url.Values{"col1": {string(prefix)}, "page": {"1"}, "submit": {"OK"}}
+	return c.nextVoucherIdentifierOnPage(prefix, 1)
+}
+
+func (c *Client) nextVoucherIdentifierOnPage(prefix string, page int) (identifier string, err error) {
+	sortFilterVals := url.Values{"col1": {string(prefix)}, "page": {strconv.Itoa(page)}, "submit": {"OK"}}
 	resp, err := c.PostForm(existingVoucherUrl, sortFilterVals)
 	if err != nil {
 		return
@@ -81,18 +85,34 @@ func (c *Client) nextVoucherIdentifier(prefix string) (identifier string, err er
 	if err != nil {
 		return
 	}
-	prevStr, err := extractSubmatch(resp, rxp)
+	prevStr, result, err := extractSubmatch(resp, rxp)
 	var next int = 1
 	if err == nil {
 		if prev, err := strconv.Atoi(prevStr); err == nil {
 			next = prev + 1
 		}
+	} else if c.hasNextPage(result) {
+		return c.nextVoucherIdentifierOnPage(prefix, page+1)
 	}
 	identifier = fmt.Sprintf("%s-%d-%03d", prefix, year, next)
 	return
 }
 
-func extractSubmatch(response *http.Response, regex *regexp.Regexp) (match string, err error) {
+func (c *Client) hasNextPage(page string) bool {
+	rxp, err := regexp.Compile("Datensatz \\d+ bis (\\d+) von (\\d+)")
+	if err != nil {
+		return false
+	}
+	n := rxp.FindStringSubmatch(page)
+	if len(n) < 3 {
+		return false
+	}
+	to, _ := strconv.Atoi(n[1])
+	all, _ := strconv.Atoi(n[2])
+	return to < all
+}
+
+func extractSubmatch(response *http.Response, regex *regexp.Regexp) (match string, page string, err error) {
 	var b bytes.Buffer
 	if _, err = io.Copy(&b, response.Body); err != nil {
 		return
