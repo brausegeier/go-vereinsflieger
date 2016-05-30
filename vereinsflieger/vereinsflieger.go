@@ -75,7 +75,9 @@ func (c *Client) nextVoucherIdentifier(prefix string) (identifier string, err er
 		return
 	}
 	year := time.Now().Year()
-	rxp, err := regexp.Compile(fmt.Sprintf("%s-%d-(\\d+)", prefix, year))
+	regexStr := fmt.Sprintf("%s-%d-(\\d+)", prefix, year)
+	fmt.Println("Looking for Vouchers matching: ", regexStr)
+	rxp, err := regexp.Compile(regexStr)
 	if err != nil {
 		return
 	}
@@ -95,9 +97,12 @@ func extractSubmatch(response *http.Response, regex *regexp.Regexp) (match strin
 	if _, err = io.Copy(&b, response.Body); err != nil {
 		return
 	}
+	fmt.Println("Search in Text: ", b.String())
 	n := regex.FindStringSubmatch(b.String())
+	fmt.Println("Found vouchers: ", n)
 	if len(n) < 2 {
 		err = errors.New("Not Found.")
+		return
 	}
 	match = n[1]
 	return
