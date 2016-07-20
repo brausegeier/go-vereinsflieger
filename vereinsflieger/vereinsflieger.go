@@ -28,9 +28,22 @@ func New() (c *Client, err error) {
 	return
 }
 
+const loginUrl = "https://www.vereinsflieger.de/"
+
+var pwsaltRegex = regexp.MustCompile("<input type=\"hidden\" name=\"pwdsalt\" value=\"([^']*)\" />")
+
 func (c *Client) Authenticate(user string, password string) (err error) {
 	h := md5.Sum([]byte(password))
-	l := url.Values{"user": {user}, "pwinput": {""}, "pw": {fmt.Sprintf("%x", h)}, "tan": {""}}
+	resp, err := c.Get(loginUrl)
+	if err != nil {
+		return
+	}
+	salt, _, err := extractSubmatch(resp, pwsaltRegex)
+	if err != nil {
+		err = errors.New("Could not extract pwdsalt.")
+		return
+	}
+	l := url.Values{"user": {user}, "pwinput": {""}, "pw": {fmt.Sprintf("%x", h)}, "tan": {""}, "pwdsalt": {salt}}
 	_, err = c.PostForm("https://www.vereinsflieger.de/member/overview/index.php", l)
 	return
 }
