@@ -45,6 +45,11 @@ func (m *Mailer) Voucher(to string, salutation string, v vereinsflieger.Voucher)
 		return
 	}
 	err = m.SendMail(to, m.VoucherSubject, b.String())
+	if err != nil {
+		fmt.Printf("Failed to send creation notification to: %s:\nSubject: %s\n\n%s\n", to, m.VoucherSubject, b.String())
+	} else {
+		fmt.Printf("Successfully notified: %s\nSubject: %s\n\n%s\n", to, m.VoucherSubject, b.String())
+	}
 	return
 }
 

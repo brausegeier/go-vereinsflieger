@@ -1,7 +1,6 @@
 package vereinsflieger
 
 import (
-	"bufio"
 	"bytes"
 	"crypto/md5"
 	"errors"
@@ -38,6 +37,7 @@ func (c *Client) Authenticate(user string, password string) (err error) {
 	if err != nil {
 		return
 	}
+	fmt.Println("Looking for Password Salt")
 	salt, _, err := extractSubmatch(resp, pwsaltRegex)
 	if err != nil {
 		err = errors.New("Could not extract pwdsalt.")
@@ -66,15 +66,26 @@ func (c *Client) AddVoucher(v *Voucher, prefix string) (err error) {
 	if err != nil {
 		return
 	}
+
+	fmt.Println("Looking for Transaction Key")
 	tKey, _, err := extractSubmatch(resp, voucherAddTKeyRegex)
 	if err != nil {
 		err = errors.New("Could not extract Transaction Key.")
 		return
 	}
 	resp, err = c.PostForm(voucherAddUrl, *v.Values(tKey))
-	m, err := regexp.MatchReader("class=\"message success", bufio.NewReader(resp.Body))
-	if err != nil || !m {
+	respBuf := bytes.Buffer{}
+	_, err = respBuf.ReadFrom(resp.Body)
+	if err != nil {
+		fmt.Println("No body when reading creation response.")
 		err = errors.New("Could not create voucher.")
+	}
+	m, err := regexp.MatchReader("class=\"message success", bytes.NewReader(respBuf.Bytes()))
+	if err != nil || !m {
+		fmt.Println("No success message. Body was:", respBuf.String())
+		err = errors.New("Could not create voucher.")
+	} else {
+		fmt.Printf("Created Voucher %+v", v)
 	}
 	return
 }
@@ -131,9 +142,10 @@ func extractSubmatch(response *http.Response, regex *regexp.Regexp) (match strin
 		return
 	}
 	page = b.String()
-	fmt.Println("Search in Text: ", page)
+	// fmt.Println("Search in Text: ", page)
+	fmt.Println("Searching for submatch: ", regex)
 	n := regex.FindStringSubmatch(page)
-	fmt.Println("Found vouchers: ", n)
+	fmt.Println("Found submatch: ", n)
 	if len(n) < 2 {
 		err = errors.New("Not Found.")
 		return
