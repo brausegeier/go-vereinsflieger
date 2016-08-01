@@ -93,32 +93,44 @@ func (c *Client) AddVoucher(v *Voucher, prefix string) (err error) {
 const existingVoucherUrl = "https://www.vereinsflieger.de/member/community/voucher.php?sort=col1_desc"
 
 func (c *Client) nextVoucherIdentifier(prefix string) (identifier string, err error) {
-	return c.nextVoucherIdentifierOnPage(prefix, 1)
+	year := time.Now().Year()
+	next, err := c.nextVoucherIndexFromPage(prefix, year, 1)
+	if err == nil {
+		identifier = fmt.Sprintf("%s-%d-%03d", prefix, year, next)
+	}
+	return
 }
 
-func (c *Client) nextVoucherIdentifierOnPage(prefix string, page int) (identifier string, err error) {
+func (c *Client) nextVoucherIndexFromPage(prefix string, year int, page int) (index int, err error) {
 	sortFilterVals := url.Values{"col1": {string(prefix)}, "page": {strconv.Itoa(page)}, "submit": {"OK"}}
 	resp, err := c.PostForm(existingVoucherUrl, sortFilterVals)
 	if err != nil {
 		return
 	}
-	year := time.Now().Year()
 	regexStr := fmt.Sprintf("%s-%d-(\\d+)", prefix, year)
-	fmt.Println("Looking for Vouchers matching: ", regexStr)
+	fmt.Printf("Looking for Vouchers matching on page %d: %v", page, regexStr)
 	rxp, err := regexp.Compile(regexStr)
 	if err != nil {
 		return
 	}
-	prevStr, result, err := extractSubmatch(resp, rxp)
-	var next int = 1
-	if err == nil {
+	prevStrings, result, err := extractSubmatches(resp, rxp)
+	index = 1
+	for _, prevStr := range prevStrings {
 		if prev, err := strconv.Atoi(prevStr); err == nil {
-			next = prev + 1
+			if index < prev+1 {
+				index = prev + 1
+			}
 		}
-	} else if c.hasNextPage(result) {
-		return c.nextVoucherIdentifierOnPage(prefix, page+1)
 	}
-	identifier = fmt.Sprintf("%s-%d-%03d", prefix, year, next)
+	if c.hasNextPage(result) {
+		var nextPageIndex int
+		nextPageIndex, err = c.nextVoucherIndexFromPage(prefix, year, page+1)
+		if err != nil {
+			return
+		} else if nextPageIndex > index {
+			index = nextPageIndex
+		}
+	}
 	return
 }
 
@@ -137,19 +149,32 @@ func (c *Client) hasNextPage(page string) bool {
 }
 
 func extractSubmatch(response *http.Response, regex *regexp.Regexp) (match string, page string, err error) {
+	matches, page, err := extractSubmatches(response, regex)
+	if err == nil {
+		if len(matches) == 0 {
+			err = errors.New("Not Found.")
+		} else {
+			match = matches[0]
+		}
+	}
+	return
+}
+
+func extractSubmatches(response *http.Response, regex *regexp.Regexp) (matches []string, page string, err error) {
 	var b bytes.Buffer
 	if _, err = io.Copy(&b, response.Body); err != nil {
 		return
 	}
 	page = b.String()
 	// fmt.Println("Search in Text: ", page)
-	fmt.Println("Searching for submatch: ", regex)
-	n := regex.FindStringSubmatch(page)
-	fmt.Println("Found submatch: ", n)
-	if len(n) < 2 {
-		err = errors.New("Not Found.")
-		return
+	fmt.Println("Searching for submatches: ", regex)
+	submatches := regex.FindAllStringSubmatch(page, -1)
+	matches = make([]string, 0)
+	for _, sm := range submatches {
+		if len(sm) >= 2 {
+			matches = append(matches, sm[1])
+		}
 	}
-	match = n[1]
+	fmt.Println("Found matches: ", matches)
 	return
 }
