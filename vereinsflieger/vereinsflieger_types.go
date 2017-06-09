@@ -58,6 +58,7 @@ func (v Voucher) Values(tKey string) *url.Values {
 	vals.Add("frm_voucherid", v.Identifier)
 	vals.Add("frm_title", v.Title)
 	vals.Add("frm_voucherdate", v.Date.Format("02.01.2006"))
+	vals.Add("frm_expiredate", "")
 	vals.Add("frm_comment", v.Comment)
 	vals.Add("frm_value", fmt.Sprintf("%d,%02d", v.Value/100, v.Value%100))
 	vals.Add("frm_status", strconv.Itoa(int(v.State)))

@@ -53,7 +53,7 @@ func (c *Client) Logout() (err error) {
 	return
 }
 
-const voucherAddUrl = "https://www.vereinsflieger.de/member/community/addvoucher.php"
+const voucherAddUrl = "https://www.vereinsflieger.de/member/community/voucher/addvid"
 
 var voucherAddTKeyRegex = regexp.MustCompile("<input type='hidden' name='tkey' value='([^']*)'>")
 
