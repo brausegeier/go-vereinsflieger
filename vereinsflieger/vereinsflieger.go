@@ -44,7 +44,7 @@ func (c *Client) Authenticate(user string, password string) (err error) {
 		return
 	}
 	l := url.Values{"user": {user}, "pwinput": {""}, "pw": {fmt.Sprintf("%x", h)}, "tan": {""}, "pwdsalt": {salt}}
-	_, err = c.PostForm("https://www.vereinsflieger.de/member/overview/index.php", l)
+	_, err = c.PostForm("https://www.vereinsflieger.de/member/overview/overview", l)
 	return
 }
 
@@ -90,7 +90,7 @@ func (c *Client) AddVoucher(v *Voucher, prefix string) (err error) {
 	return
 }
 
-const existingVoucherUrl = "https://www.vereinsflieger.de/member/community/voucher.php?sort=col1_desc"
+const existingVoucherUrl = "https://www.vereinsflieger.de/member/community/voucher/?sort=col1_desc"
 
 func (c *Client) nextVoucherIdentifier(prefix string) (identifier string, err error) {
 	year := time.Now().Year()
