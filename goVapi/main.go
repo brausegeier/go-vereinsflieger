@@ -2,7 +2,7 @@ package main
 
 import (
 	"fmt"
-	"github.com/janvogt/go-vereinsflieger/api"
+	"github.com/brausegeier/go-vereinsflieger/api"
 	"net/http"
 )
 

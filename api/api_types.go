@@ -2,7 +2,7 @@ package api
 
 import (
 	"fmt"
-	"github.com/janvogt/go-vereinsflieger/vereinsflieger"
+	"github.com/brausegeier/go-vereinsflieger/vereinsflieger"
 	"net/http"
 	"net/url"
 	"strconv"

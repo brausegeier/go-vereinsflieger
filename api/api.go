@@ -3,8 +3,8 @@ package api
 import (
 	"encoding/json"
 	"fmt"
-	"github.com/janvogt/go-vereinsflieger/mailer"
-	"github.com/janvogt/go-vereinsflieger/vereinsflieger"
+	"github.com/brausegeier/go-vereinsflieger/mailer"
+	"github.com/brausegeier/go-vereinsflieger/vereinsflieger"
 	"github.com/naoina/toml"
 	"io/ioutil"
 	"net/http"
@@ -29,7 +29,7 @@ type Config struct {
 var DefaultConfig Config
 
 func init() {
-	b, err := ioutil.ReadFile(os.ExpandEnv("$GOPATH/src/github.com/janvogt/go-vereinsflieger/config.toml"))
+	b, err := ioutil.ReadFile(os.ExpandEnv("$GOPATH/src/github.com/brausegeier/go-vereinsflieger/config.toml"))
 	if err != nil {
 		panic(err)
 	}

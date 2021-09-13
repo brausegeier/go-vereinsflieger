@@ -5,7 +5,7 @@ user = "user"
 password = "password"
 
 [recaptcha]
-require = false
+require = true
 secret = "secret"
 
 [mail]

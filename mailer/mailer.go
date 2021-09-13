@@ -3,7 +3,7 @@ package mailer
 import (
 	"bytes"
 	"fmt"
-	"github.com/janvogt/go-vereinsflieger/vereinsflieger"
+	"github.com/brausegeier/go-vereinsflieger/vereinsflieger"
 	"net/smtp"
 	"strings"
 	"text/template"
